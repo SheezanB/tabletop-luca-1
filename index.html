@@ -69,13 +69,186 @@
         input[type="checkbox"]:hover {
             border-color: #2c3f2f;
         }
+        
+        /* Custom date input styling */
+        input[type="date"] {
+            position: relative;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        /* Style the calendar icon */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.6;
+            filter: invert(0);
+            transition: opacity 0.2s ease;
+        }
+        
+        input[type="date"]:hover::-webkit-calendar-picker-indicator {
+            opacity: 1;
+        }
+        
+        /* Focus state for date input */
+        input[type="date"]:focus {
+            border-color: #2c3f2f !important;
+            outline: none;
+        }
+        
+        /* Style for select dropdowns */
+        select {
+            cursor: pointer;
+            background-color: white;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        /* Remove dropdown arrow for unified filter container */
+        select.no-arrow {
+            background-image: none !important;
+            padding-right: 16px;
+        }
+        
+        select:focus {
+            border-color: #2c3f2f !important;
+            outline: none;
+        }
     </style>
-</head>
+    
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
+
+        // Custom Calendar Component
+        const CustomCalendar = ({ selectedDate, onSelectDate, onClose, getNextDays }) => {
+          const [currentMonth, setCurrentMonth] = useState(new Date());
+          
+          const daysInMonth = (date) => {
+            return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+          };
+          
+          const firstDayOfMonth = (date) => {
+            return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+          };
+          
+          const monthNames = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+          const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+          
+          const goToPrevMonth = () => {
+            setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+          };
+          
+          const goToNextMonth = () => {
+            setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+          };
+          
+          const isDateSelectable = (dateStr) => {
+            const availableDates = getNextDays();
+            return availableDates.includes(dateStr);
+          };
+          
+          const isDateSelected = (dateStr) => {
+            return selectedDate === dateStr;
+          };
+          
+          const today = new Date();
+          const daysCount = daysInMonth(currentMonth);
+          const firstDay = firstDayOfMonth(currentMonth);
+          const days = [];
+          
+          // Add empty cells for days before the first day of month
+          for (let i = 0; i < firstDay; i++) {
+            days.push(<div key={`empty-${i}`} className="p-2"></div>);
+          }
+          
+          // Add days of the month
+          for (let day = 1; day <= daysCount; day++) {
+            const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isSelectable = isDateSelectable(dateStr);
+            const isSelected = isDateSelected(dateStr);
+            const isToday = today.getDate() === day && today.getMonth() === currentMonth.getMonth() && today.getFullYear() === currentMonth.getFullYear();
+            
+            days.push(
+              <button
+                key={day}
+                onClick={() => {
+                  if (isSelectable) {
+                    onSelectDate(dateStr);
+                    onClose();
+                  }
+                }}
+                disabled={!isSelectable}
+                style={isSelected ? { backgroundColor: '#2c3f2f', color: 'white' } : {}}
+                className={`p-2 text-xs font-medium rounded-lg transition-all ${
+                  isSelectable 
+                    ? 'hover:bg-gray-100 cursor-pointer text-black' 
+                    : 'text-gray-300 cursor-not-allowed'
+                } ${isToday && !isSelected ? 'border border-gray-300' : ''}`}
+              >
+                {day}
+              </button>
+            );
+          }
+          
+          return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+              <div className="bg-white rounded-lg shadow-xl max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+                {/* Header */}
+                <div className="p-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <button onClick={goToPrevMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-all">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                      </svg>
+                    </button>
+                    <div className="text-sm font-semibold text-black">
+                      {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                    </div>
+                    <button onClick={goToNextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-all">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Day names */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {dayNames.map(day => (
+                      <div key={day} className="text-xs font-medium text-gray-500 text-center p-1">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Calendar grid */}
+                <div className="p-4">
+                  <div className="grid grid-cols-7 gap-1">
+                    {days}
+                  </div>
+                </div>
+                
+                {/* Close button */}
+                <div className="p-4 border-t border-gray-200">
+                  <button 
+                    onClick={onClose}
+                    className="w-full py-2 text-xs font-medium text-black hover:bg-gray-100 rounded-lg transition-all"
+                  >
+                    CLOSE
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        };
 
         // Lucide React icons
         const Play = ({ className, ...props }) => (
@@ -110,10 +283,10 @@
         );
 
         const Info = ({ className, ...props }) => (
-            <svg className={className} {...props} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            <svg className={className} {...props} width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke="#9ca3af" strokeWidth="1.5" fill="none"></circle>
+                <circle cx="12" cy="8" r="1" fill="#374151"></circle>
+                <rect x="11.2" y="10.5" width="1.6" height="5.5" rx="0.3" fill="#374151"></rect>
             </svg>
         );
 
@@ -172,10 +345,10 @@
         );
 
         const TabletopMobileApp = () => {
-          const [selectedDate, setSelectedDate] = useState(null);
+          const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
           const [selectedTime, setSelectedTime] = useState('');
           const [selectedTimeType, setSelectedTimeType] = useState('ferragosto');
-          const [partySize, setPartySize] = useState(4);
+          const [partySize, setPartySize] = useState('2');
           const [isVideoPlaying, setIsVideoPlaying] = useState(true);
           const [isVideoExpanded, setIsVideoExpanded] = useState(false);
           const [isVideoVisible, setIsVideoVisible] = useState(true);
@@ -198,6 +371,17 @@
           const [alertPhone, setAlertPhone] = useState('');
           const [alertStartTime, setAlertStartTime] = useState('');
           const [alertEndTime, setAlertEndTime] = useState('');
+          const [showCalendar, setShowCalendar] = useState(false);
+          const [showAlertCalendar, setShowAlertCalendar] = useState(false);
+          const [filterTime, setFilterTime] = useState('');
+          
+          // Ensure selectedDate is set to today on mount
+          useEffect(() => {
+            const today = new Date().toISOString().split('T')[0];
+            if (!selectedDate) {
+              setSelectedDate(today);
+            }
+          }, []);
           
           // Chef's Menu upgrades state
           const [showWhatsNew, setShowWhatsNew] = useState(false);
@@ -274,6 +458,12 @@
               title: 'Main Dining Room',
               shortDescription: 'Experience our signature à la carte menu in the heart of Luca',
               description: 'Our Main Dining Room offers the full Luca experience with our complete à la carte menu featuring seasonal Italian dishes crafted with the finest ingredients.'
+            },
+            {
+              src: 'Luca_Bar.mp4',
+              title: 'Bar Express Menu',
+              shortDescription: 'Quick lunch service at our intimate bar • Express menu • Perfect for a swift Italian experience',
+              description: 'The Bar Express Menu is served at the bar for parties up to 4.'
             }
           ];
 
@@ -295,7 +485,6 @@
           // Reset video index when party size changes to ensure we're showing the correct videos
           useEffect(() => {
             setCurrentVideoIndex(0);
-            setSelectedDate(null);
             setSelectedTime('');
           }, [partySize]);
 
@@ -304,9 +493,8 @@
             setIsDescriptionExpanded(false);
           }, [currentVideoIndex]);
 
-          // Clear date and time selections when switching videos
+          // Clear time selection when switching videos
           useEffect(() => {
-            setSelectedDate(null);
             setSelectedTime('');
           }, [currentVideoIndex]);
 
@@ -329,11 +517,50 @@
             }
           }, [showBookingModal]);
 
+          // Ensure clean audio when video size changes
+          useEffect(() => {
+            if (videoRef.current) {
+              // Force a clean audio state by ensuring only one audio context
+              const video = videoRef.current;
+              
+              // Remove any duplicate audio contexts
+              if (video.paused && isVideoExpanded !== undefined) {
+                video.play().catch(err => console.log('Video play on expand:', err));
+              }
+            }
+          }, [isVideoExpanded]);
+
           // Time slots
           const ferragostoSlots = ['6:00 PM', '8:00 PM', '8:30 PM', '9:00 PM'];
           const mainDiningSlots = ['7:00 PM', '9:00 PM', '9:30 PM', '10:00 PM'];
+          const barExpressSlots = ['12:00 PM', '12:30 PM', '1:00 PM', '2:00 PM'];
           const gardenRoomSlots = ['6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM'];
           const pastaRoomSlots = ['6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM'];
+
+          // Function to check if a time is within 1 hour of the filter time
+          const isWithinOneHour = (slotTime, filterTime) => {
+            if (!filterTime) return true; // Show all if no filter selected
+            
+            const parseTime = (timeStr) => {
+              const [time, period] = timeStr.split(' ');
+              let [hours, minutes] = time.split(':').map(Number);
+              if (period === 'PM' && hours !== 12) hours += 12;
+              if (period === 'AM' && hours === 12) hours = 0;
+              return hours * 60 + minutes;
+            };
+            
+            const slotMinutes = parseTime(slotTime);
+            const filterMinutes = parseTime(filterTime);
+            const diff = Math.abs(slotMinutes - filterMinutes);
+            
+            return diff <= 120; // Within 120 minutes (2 hours)
+          };
+
+          // Filter time slots based on selected filter time
+          const filteredFerragostoSlots = ferragostoSlots.filter(time => isWithinOneHour(time, filterTime));
+          const filteredMainDiningSlots = mainDiningSlots.filter(time => isWithinOneHour(time, filterTime));
+          const filteredBarExpressSlots = barExpressSlots.filter(time => isWithinOneHour(time, filterTime));
+
 
           // Generate next 14 days
           const getNextDays = () => {
@@ -373,7 +600,27 @@
           };
 
           const toggleVideoSize = () => {
-            setIsVideoExpanded(!isVideoExpanded);
+            // Ensure clean audio state during transition
+            if (videoRef.current) {
+              const currentTime = videoRef.current.currentTime;
+              const wasMuted = videoRef.current.muted;
+              
+              // Briefly pause to prevent audio overlap
+              videoRef.current.pause();
+              
+              setIsVideoExpanded(!isVideoExpanded);
+              
+              // Resume playback after state change with same settings
+              setTimeout(() => {
+                if (videoRef.current) {
+                  videoRef.current.currentTime = currentTime;
+                  videoRef.current.muted = wasMuted;
+                  videoRef.current.play().catch(err => console.log('Playback resumed:', err));
+                }
+              }, 50);
+            } else {
+              setIsVideoExpanded(!isVideoExpanded);
+            }
           };
 
           const closeVideo = () => {
@@ -442,67 +689,136 @@
                   </div>
                 </div>
                 
-                {/* Party Size */}
+                {/* Filter Container - Unified Dropdowns */}
                 <div className="mb-4">
-                  <div className="text-xs font-medium text-black mb-2 tracking-wider">GUESTS</div>
-                  <div className="flex gap-1 sm:gap-2">
-                    {[1, 2, 3, 4, 5, 6, '7+'].map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setPartySize(size)}
-                        className="flex-1 min-w-0 h-12 rounded-lg font-medium transition-all text-base bg-gray-100 text-black hover:bg-gray-200"
-                        style={partySize === size ? { border: '2px solid black', backgroundColor: 'white' } : {}}
-                      >
-                        <div className="text-xs">{size}</div>
-                      </button>
-                    ))}
+                  <div className="w-full bg-white rounded-lg overflow-hidden" style={{ border: '1px solid #e5e5e5' }}>
+                    <div className="grid grid-cols-3" style={{ borderLeft: '0', borderRight: '0' }}>
+                      {/* Guests Dropdown */}
+                      <div style={{ borderRight: '1px solid #e5e5e5' }}>
+                        <select
+                          value={partySize}
+                          onChange={(e) => setPartySize(e.target.value)}
+                          style={{
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
+                            backgroundImage: 'none'
+                          }}
+                          className="w-full px-4 py-4 bg-transparent border-0 text-xs font-medium text-black transition-all hover:bg-gray-50 focus:outline-none focus:bg-gray-50 cursor-pointer text-center"
+                        >
+                          <option value="1">1 GUEST</option>
+                          <option value="2">2 GUESTS</option>
+                          <option value="3">3 GUESTS</option>
+                          <option value="4">4 GUESTS</option>
+                          <option value="5">5 GUESTS</option>
+                          <option value="6">6 GUESTS</option>
+                          <option value="7+">7+ GUESTS</option>
+                        </select>
+                      </div>
+
+                      {/* Date Button - Opens Calendar */}
+                      <div style={{ borderRight: '1px solid #e5e5e5' }}>
+                        <button
+                          onClick={() => setShowCalendar(true)}
+                          className="w-full px-4 py-4 bg-transparent border-0 text-xs font-medium text-black transition-all hover:bg-gray-50 focus:outline-none focus:bg-gray-50 cursor-pointer text-center"
+                        >
+                          {(() => {
+                            try {
+                              if (!selectedDate) return 'SELECT DATE';
+                              
+                              // Parse date string correctly to avoid timezone issues
+                              const parts = selectedDate.split('-');
+                              const year = parseInt(parts[0]);
+                              const month = parseInt(parts[1]) - 1;
+                              const day = parseInt(parts[2]);
+                              const dateObj = new Date(year, month, day);
+                              
+                              // Check if it's today
+                              const today = new Date();
+                              const isToday = dateObj.getDate() === today.getDate() && 
+                                              dateObj.getMonth() === today.getMonth() && 
+                                              dateObj.getFullYear() === today.getFullYear();
+                              
+                              if (isToday) return 'TODAY';
+                              
+                              const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+                              const monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+                              
+                              return `${dayName}, ${monthDay}`;
+                            } catch (error) {
+                              console.error('Date parsing error:', error);
+                              return 'TODAY';
+                            }
+                          })()}
+                        </button>
+                      </div>
+
+                      {/* Time Dropdown */}
+                      <div>
+                        <select
+                          value={filterTime}
+                          onChange={(e) => setFilterTime(e.target.value)}
+                          style={{
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
+                            backgroundImage: 'none'
+                          }}
+                          className="w-full px-4 py-4 bg-transparent border-0 text-xs font-medium text-black transition-all hover:bg-gray-50 focus:outline-none focus:bg-gray-50 cursor-pointer text-center"
+                        >
+                          <option value="">ANY TIME</option>
+                          <option value="10:00 AM">10:00 AM</option>
+                          <option value="10:30 AM">10:30 AM</option>
+                          <option value="11:00 AM">11:00 AM</option>
+                          <option value="11:30 AM">11:30 AM</option>
+                          <option value="12:00 PM">12:00 PM</option>
+                          <option value="12:30 PM">12:30 PM</option>
+                          <option value="1:00 PM">1:00 PM</option>
+                          <option value="1:30 PM">1:30 PM</option>
+                          <option value="2:00 PM">2:00 PM</option>
+                          <option value="2:30 PM">2:30 PM</option>
+                          <option value="3:00 PM">3:00 PM</option>
+                          <option value="3:30 PM">3:30 PM</option>
+                          <option value="4:00 PM">4:00 PM</option>
+                          <option value="4:30 PM">4:30 PM</option>
+                          <option value="5:00 PM">5:00 PM</option>
+                          <option value="5:30 PM">5:30 PM</option>
+                          <option value="6:00 PM">6:00 PM</option>
+                          <option value="6:30 PM">6:30 PM</option>
+                          <option value="7:00 PM">7:00 PM</option>
+                          <option value="7:30 PM">7:30 PM</option>
+                          <option value="8:00 PM">8:00 PM</option>
+                          <option value="8:30 PM">8:30 PM</option>
+                          <option value="9:00 PM">9:00 PM</option>
+                          <option value="9:30 PM">9:30 PM</option>
+                          <option value="10:00 PM">10:00 PM</option>
+                          <option value="10:30 PM">10:30 PM</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Date Selection - Only for regular dining (not private dining) */}
-                {partySize !== '7+' && (
+                {/* Time Selection - First Option - White Truffle */}
+                {partySize !== '7+' && filteredFerragostoSlots.length > 0 && (
                   <div className="mb-4">
-                    <div className="text-xs font-medium text-black mb-2 tracking-wider">DATE</div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-xs font-medium text-black tracking-wider">
+                        WHITE TRUFFLE MENU
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(0);
+                        }}
+                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </div>
                     <div className="flex gap-2 overflow-x-auto pb-2">
-                      {getNextDays().map((date, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedDate(date)}
-                          className="flex-shrink-0 px-4 py-4 rounded-lg font-medium transition-all w-32 text-base bg-gray-100 text-black hover:bg-gray-200"
-                          style={isDateSelected(date) ? { border: '2px solid black', backgroundColor: 'white' } : {}}
-                        >
-                          <div className="text-xs">{formatDate(date)}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Time Selection - First Option */}
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="text-xs font-medium text-black tracking-wider">
-                      {partySize === '7+' ? 'THE GARDEN ROOM' : 'WHITE TRUFFLE MENU'}
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setIsVideoVisible(true);
-                        setIsVideoExpanded(true);
-                        setCurrentVideoIndex(0);
-                      }}
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      <Info className="w-4 h-4" />
-                    </button>
-                  </div>
-                  {partySize === '7+' && (
-                    <div className="text-sm text-black leading-relaxed mb-3">
-                      The foliage-filled Garden Room conjures dreams of Little Italy. This rustic, secluded sanctuary overlooks our buzzy kitchen. We offer a seasonal six-course menu priced at £120 per person.
-                    </div>
-                  )}
-                  {partySize !== '7+' && (
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                      {ferragostoSlots.map((time) => (
+                      {filteredFerragostoSlots.map((time) => (
                         <button
                           key={time}
                           onClick={() => handleTimeSelection(time, 'ferragosto')}
@@ -513,34 +829,52 @@
                         </button>
                       ))}
                     </div>
-                  )}
-                </div>
-
-                {/* Time Selection - Second Option */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="text-xs font-medium text-black tracking-wider">
-                      {partySize === '7+' ? 'THE PASTA ROOM' : 'MAIN DINING ROOM'}
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setIsVideoVisible(true);
-                        setIsVideoExpanded(true);
-                        setCurrentVideoIndex(1);
-                      }}
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      <Info className="w-4 h-4" />
-                    </button>
                   </div>
-                  {partySize === '7+' && (
-                    <div className="text-sm text-black leading-relaxed mb-3">
-                      The Pasta Room emanates Italian soul and warmth, serving as the very heart of our daily pasta production. Enjoy our delightful seasonal six-course menu priced at £120 per person.
+                )}
+
+                {partySize === '7+' && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-xs font-medium text-black tracking-wider">
+                        THE GARDEN ROOM
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(0);
+                        }}
+                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
                     </div>
-                  )}
-                  {partySize !== '7+' && (
+                    <div className="text-sm text-black leading-relaxed mb-3">
+                      The foliage-filled Garden Room conjures dreams of Little Italy. This rustic, secluded sanctuary overlooks our buzzy kitchen. We offer a seasonal six-course menu priced at £120 per person.
+                    </div>
+                  </div>
+                )}
+
+                {/* Time Selection - Second Option - Main Dining */}
+                {partySize !== '7+' && filteredMainDiningSlots.length > 0 && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-xs font-medium text-black tracking-wider">
+                        MAIN DINING ROOM
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(1);
+                        }}
+                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </div>
                     <div className="flex gap-2 overflow-x-auto pb-2">
-                      {mainDiningSlots.map((time) => (
+                      {filteredMainDiningSlots.map((time) => (
                         <button
                           key={`main-${time}`}
                           onClick={() => handleTimeSelection(time, 'main')}
@@ -551,8 +885,92 @@
                         </button>
                       ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {partySize === '7+' && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-xs font-medium text-black tracking-wider">
+                        THE PASTA ROOM
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(1);
+                        }}
+                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="text-sm text-black leading-relaxed mb-3">
+                      The Pasta Room emanates Italian soul and warmth, serving as the very heart of our daily pasta production. Enjoy our delightful seasonal six-course menu priced at £120 per person.
+                    </div>
+                  </div>
+                )}
+
+                {/* Time Selection - Third Option - Bar Express */}
+                {partySize !== '7+' && filteredBarExpressSlots.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="text-xs font-medium text-black tracking-wider">
+                        BAR EXPRESS MENU
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(2);
+                        }}
+                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                      {filteredBarExpressSlots.map((time) => (
+                        <button
+                          key={`bar-${time}`}
+                          onClick={() => handleTimeSelection(time, 'bar')}
+                          className="flex-shrink-0 px-4 py-4 rounded-lg font-medium transition-all w-32 text-base bg-gray-100 text-black hover:bg-gray-200"
+                          style={isTimeSelected(time, 'bar') ? { border: '2px solid black', backgroundColor: 'white' } : {}}
+                        >
+                          <div className="text-xs">{time}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* No tables available message */}
+                {partySize !== '7+' && filterTime && filteredFerragostoSlots.length === 0 && filteredMainDiningSlots.length === 0 && filteredBarExpressSlots.length === 0 && (
+                  <div className="mb-6 text-center py-8">
+                    <p className="text-base text-black mb-4">
+                      Sorry, we don't have any tables within 2 hours of {filterTime}.
+                    </p>
+                    <button 
+                      onClick={() => {
+                        // Auto-populate the Priority Alert form with selected date and time
+                        if (selectedDate) {
+                          setAlertDate(selectedDate);
+                        }
+                        if (filterTime) {
+                          setAlertStartTime(filterTime);
+                        }
+                        if (partySize && partySize !== '7+') {
+                          setAlertPartySize(partySize);
+                        }
+                        setShowAlertModal(true);
+                      }}
+                      className="px-6 py-3 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition-all font-medium text-sm inline-flex items-center gap-2"
+                    >
+                      <Bell className="w-4 h-4" />
+                      ALERT ME
+                    </button>
+                  </div>
+                )}
 
                 {/* Continue Button / Request Button */}
                 {partySize === '7+' ? (
@@ -582,23 +1000,33 @@
               </div>
 
               {/* Picture-in-Picture Video */}
-              {isVideoVisible && !showBookingModal && !showWhatsNew && !showConfirmation && (
+              {isVideoVisible && !showBookingModal && !showWhatsNew && !showConfirmation && !showAlertModal && (
                 <div 
                   className={`fixed transition-all duration-300 z-50 ${
                     isVideoExpanded 
-                      ? 'inset-4 rounded-lg' 
+                      ? 'inset-0' 
                       : 'bottom-4 right-4 w-40 h-72 rounded-lg'
                   }`}
                 >
-                  <div className="relative w-full h-full bg-black rounded-lg overflow-hidden shadow-xl border border-gray-300">
+                  <div className={`relative w-full h-full bg-black overflow-hidden shadow-xl ${
+                    isVideoExpanded 
+                      ? '' 
+                      : 'rounded-lg border border-gray-300'
+                  }`}>
                     <video
                       ref={videoRef}
                       key={currentVideoIndex}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover cursor-pointer"
                       autoPlay
                       muted={isVideoMuted}
                       loop
                       playsInline
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isVideoExpanded) {
+                          toggleVideoSize();
+                        }
+                      }}
                       onError={(e) => {
                         console.error('Video failed to load:', currentVideo.src);
                         console.error('Error details:', e);
@@ -727,9 +1155,12 @@
                                     if (currentVideoIndex === 0) {
                                       slots = ferragostoSlots;
                                       type = 'ferragosto';
-                                    } else {
+                                    } else if (currentVideoIndex === 1) {
                                       slots = mainDiningSlots;
                                       type = 'main';
+                                    } else {
+                                      slots = barExpressSlots;
+                                      type = 'bar';
                                     }
                                     
                                     return slots.map((time) => (
@@ -800,16 +1231,31 @@
                       <>
                         {/* X button in top-right corner */}
                         <button
-                          onClick={closeVideo}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            closeVideo();
+                          }}
                           className="absolute top-1 right-1 w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all z-10"
                         >
                           <X className="w-3 h-3 text-white" />
                         </button>
                         
-                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200">
+                        <div 
+                          className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Only expand if clicking the overlay itself, not the buttons
+                            if (e.target === e.currentTarget) {
+                              toggleVideoSize();
+                            }
+                          }}
+                        >
                           <div className="absolute bottom-1 left-1 right-1 flex justify-between items-center">
                             <button
-                              onClick={toggleVideo}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleVideo();
+                              }}
                               className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all"
                             >
                               {isVideoPlaying ? (
@@ -820,7 +1266,10 @@
                             </button>
                             
                             <button
-                              onClick={toggleVideoSize}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleVideoSize();
+                              }}
                               className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all"
                             >
                               <Maximize2 className="w-3 h-3 text-white" />
@@ -1140,7 +1589,7 @@
 
                       {/* Seating Area Title */}
                       <h2 className="text-[14px] text-black text-center mb-2">
-                        {selectedTimeType === 'ferragosto' ? 'White Truffle Menu' : 'Main Dining Room'}
+                        {selectedTimeType === 'ferragosto' ? 'White Truffle Menu' : selectedTimeType === 'bar' ? 'Bar Express Menu' : 'Main Dining Room'}
                       </h2>
 
                       {/* Booking Summary */}
@@ -1488,7 +1937,7 @@
 
                     {/* Special Requests Section */}
                     <div className="mb-6">
-                      <p className="text-[15px] text-black mb-4 leading-relaxed">
+                      <p className="text-[15px] text-black mb-4 leading-relaxed text-left">
                         If you'd like, tell us more about yourself and your preferences so we can provide a better experience.
                       </p>
                       
@@ -1498,9 +1947,9 @@
                           <button
                             type="button"
                             onClick={() => setExpandedSection(expandedSection === 'occasion' ? null : 'occasion')}
-                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left"
                           >
-                            <span className="text-[15px] text-black">Is this a Special Occasion?</span>
+                            <span className="text-[15px] text-black text-left">Is this a Special Occasion?</span>
                             <Plus className={`w-5 h-5 text-black transition-transform ${expandedSection === 'occasion' ? 'rotate-45' : ''}`} />
                           </button>
                           {expandedSection === 'occasion' && (
@@ -1524,9 +1973,9 @@
                           <button
                             type="button"
                             onClick={() => setExpandedSection(expandedSection === 'dietary' ? null : 'dietary')}
-                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left"
                           >
-                            <span className="text-[15px] text-black">Do you have any dietary restrictions?</span>
+                            <span className="text-[15px] text-black text-left">Do you have any dietary restrictions?</span>
                             <Plus className={`w-5 h-5 text-black transition-transform ${expandedSection === 'dietary' ? 'rotate-45' : ''}`} />
                           </button>
                           {expandedSection === 'dietary' && (
@@ -1584,9 +2033,9 @@
                           <button
                             type="button"
                             onClick={() => setExpandedSection(expandedSection === 'partyDietary' ? null : 'partyDietary')}
-                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left"
                           >
-                            <span className="text-[15px] text-black">Does your party have any dietary restrictions?</span>
+                            <span className="text-[15px] text-black text-left">Does your party have any dietary restrictions?</span>
                             <Plus className={`w-5 h-5 text-black transition-transform ${expandedSection === 'partyDietary' ? 'rotate-45' : ''}`} />
                           </button>
                           {expandedSection === 'partyDietary' && (
@@ -1624,9 +2073,9 @@
                           <button
                             type="button"
                             onClick={() => setExpandedSection(expandedSection === 'other' ? null : 'other')}
-                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left"
                           >
-                            <span className="text-[15px] text-black">Anything else we should know?</span>
+                            <span className="text-[15px] text-black text-left">Anything else we should know?</span>
                             <Plus className={`w-5 h-5 text-black transition-transform ${expandedSection === 'other' ? 'rotate-45' : ''}`} />
                           </button>
                           {expandedSection === 'other' && (
@@ -1848,7 +2297,7 @@
                       
                       <div className="space-y-1">
                         <div className="text-[15px] text-black">
-                          {selectedTimeType === 'ferragosto' ? 'White Truffle Menu' : 'Main Dining Room'}
+                          {selectedTimeType === 'ferragosto' ? 'White Truffle Menu' : selectedTimeType === 'bar' ? 'Bar Express Menu' : 'Main Dining Room'}
                         </div>
                         
                         <div className="text-[15px] text-black">
@@ -1897,7 +2346,7 @@
                       {/* Google Map */}
                       <div className="mb-4 rounded-lg overflow-hidden">
                         <iframe
-                          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2482.164687883392!2d-0.10533492346699998!3d51.52314067181889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761b4ccdb5c5f9%3A0x3d5f6c3c0d9e6d4a!2s88%20St%20John%20St%2C%20London%20EC1M%204EH%2C%20UK!5e0!3m2!1sen!2sus!4v1699999999999!5m2!1sen!2sus"
+                          src="https://www.google.com/maps?q=88+St+John+Street,+London+EC1M+4EH,+UK&output=embed"
                           width="100%"
                           height="200"
                           style={{ border: 0 }}
@@ -1948,27 +2397,40 @@
                     </div>
 
                     {/* Intro Text */}
-                    <p className="text-[17px] text-black mb-6">Alert me on this date when a time slot has opened:</p>
+                    <p className="text-[17px] text-black mb-6">Alert me when a time slot has opened on this date:</p>
 
                     {/* Date Selection */}
                     <div className="mb-4">
-                      <label className="block text-[17px] text-black mb-2">Date*</label>
-                      <input 
-                        type="date"
-                        value={alertDate}
-                        onChange={(e) => setAlertDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full p-3 border-2 border-gray-300 rounded-lg text-[15px] text-black outline-none focus:border-blue-600"
-                      />
+                      <label className="block text-[15px] font-medium text-black mb-2">Date*</label>
+                      <button
+                        onClick={() => setShowAlertCalendar(true)}
+                        className="w-full p-3 border-2 border-gray-300 rounded-lg text-[15px] text-black text-left hover:border-gray-400 transition-colors flex items-center justify-between"
+                      >
+                        <span>{alertDate ? (() => {
+                          try {
+                            const [year, month, day] = alertDate.split('-').map(Number);
+                            const dateObj = new Date(year, month - 1, day);
+                            return dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                          } catch (e) {
+                            return 'Select date';
+                          }
+                        })() : 'Select date'}</span>
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                      </button>
                     </div>
 
                     {/* Party Size Selection */}
                     <div className="mb-6">
-                      <label className="block text-[17px] text-black mb-2">Number of Guests*</label>
+                      <label className="block text-[15px] font-medium text-black mb-2">Number of Guests*</label>
                       <select 
                         value={alertPartySize}
                         onChange={(e) => setAlertPartySize(e.target.value)}
-                        className="w-full p-3 border-2 border-gray-300 rounded-lg text-[15px] text-black outline-none focus:border-blue-600"
+                        className="w-full p-3 border-2 border-gray-300 rounded-lg text-[15px] text-black outline-none transition-colors"
                       >
                         <option value="1">1 guest</option>
                         <option value="2">2 guests</option>
@@ -1983,19 +2445,30 @@
 
                     {/* Reservation Time Between */}
                     <div className="mb-6">
-                      <label className="block text-[17px] text-black mb-2">Reservation Time Between:*</label>
+                      <label className="block text-[15px] font-medium text-black mb-2">Reservation Time Between:*</label>
                       <div className="flex items-center gap-2">
                         <select 
                           value={alertStartTime}
                           onChange={(e) => setAlertStartTime(e.target.value)}
-                          className="flex-1 p-3 border-2 border-gray-300 rounded-lg text-[15px] text-black outline-none focus:border-blue-600"
+                          className="flex-1 p-3 border-2 border-gray-300 rounded-lg text-[15px] text-black outline-none transition-colors"
                         >
                           <option value="">Choose Start Time</option>
+                          <option value="10:00 AM">10:00 AM</option>
+                          <option value="10:30 AM">10:30 AM</option>
+                          <option value="11:00 AM">11:00 AM</option>
+                          <option value="11:30 AM">11:30 AM</option>
                           <option value="12:00 PM">12:00 PM</option>
                           <option value="12:30 PM">12:30 PM</option>
                           <option value="1:00 PM">1:00 PM</option>
                           <option value="1:30 PM">1:30 PM</option>
                           <option value="2:00 PM">2:00 PM</option>
+                          <option value="2:30 PM">2:30 PM</option>
+                          <option value="3:00 PM">3:00 PM</option>
+                          <option value="3:30 PM">3:30 PM</option>
+                          <option value="4:00 PM">4:00 PM</option>
+                          <option value="4:30 PM">4:30 PM</option>
+                          <option value="5:00 PM">5:00 PM</option>
+                          <option value="5:30 PM">5:30 PM</option>
                           <option value="6:00 PM">6:00 PM</option>
                           <option value="6:30 PM">6:30 PM</option>
                           <option value="7:00 PM">7:00 PM</option>
@@ -2005,19 +2478,31 @@
                           <option value="9:00 PM">9:00 PM</option>
                           <option value="9:30 PM">9:30 PM</option>
                           <option value="10:00 PM">10:00 PM</option>
+                          <option value="10:30 PM">10:30 PM</option>
                         </select>
                         <span className="text-[17px] text-black">-</span>
                         <select 
                           value={alertEndTime}
                           onChange={(e) => setAlertEndTime(e.target.value)}
-                          className="flex-1 p-3 border-2 border-gray-300 rounded-lg text-[15px] text-black outline-none focus:border-blue-600"
+                          className="flex-1 p-3 border-2 border-gray-300 rounded-lg text-[15px] text-black outline-none transition-colors"
                         >
                           <option value="">Choose End Time</option>
+                          <option value="10:00 AM">10:00 AM</option>
+                          <option value="10:30 AM">10:30 AM</option>
+                          <option value="11:00 AM">11:00 AM</option>
+                          <option value="11:30 AM">11:30 AM</option>
                           <option value="12:00 PM">12:00 PM</option>
                           <option value="12:30 PM">12:30 PM</option>
                           <option value="1:00 PM">1:00 PM</option>
                           <option value="1:30 PM">1:30 PM</option>
                           <option value="2:00 PM">2:00 PM</option>
+                          <option value="2:30 PM">2:30 PM</option>
+                          <option value="3:00 PM">3:00 PM</option>
+                          <option value="3:30 PM">3:30 PM</option>
+                          <option value="4:00 PM">4:00 PM</option>
+                          <option value="4:30 PM">4:30 PM</option>
+                          <option value="5:00 PM">5:00 PM</option>
+                          <option value="5:30 PM">5:30 PM</option>
                           <option value="6:00 PM">6:00 PM</option>
                           <option value="6:30 PM">6:30 PM</option>
                           <option value="7:00 PM">7:00 PM</option>
@@ -2027,6 +2512,7 @@
                           <option value="9:00 PM">9:00 PM</option>
                           <option value="9:30 PM">9:30 PM</option>
                           <option value="10:00 PM">10:00 PM</option>
+                          <option value="10:30 PM">10:30 PM</option>
                         </select>
                       </div>
                     </div>
@@ -2152,6 +2638,28 @@
                 </div>
               )}
 
+              {/* Alert Calendar Modal */}
+              {showAlertCalendar && (
+                <CustomCalendar
+                  selectedDate={alertDate}
+                  onSelectDate={(date) => {
+                    setAlertDate(date);
+                    setShowAlertCalendar(false);
+                  }}
+                  onClose={() => setShowAlertCalendar(false)}
+                  getNextDays={() => {
+                    // Generate next 60 days for alert calendar
+                    const days = [];
+                    for (let i = 0; i < 60; i++) {
+                      const date = new Date();
+                      date.setDate(date.getDate() + i);
+                      days.push(date.toISOString().split('T')[0]);
+                    }
+                    return days;
+                  }}
+                />
+              )}
+
               {/* Priority Alert Confirmation */}
               {showAlertConfirmation && (
                 <div className="fixed inset-0 bg-white z-70 overflow-y-auto">
@@ -2185,7 +2693,15 @@
                           <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
                         <span className="text-[15px] text-black">
-                          {alertDate ? new Date(alertDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'No date selected'}
+                          {alertDate ? (() => {
+                            try {
+                              const [year, month, day] = alertDate.split('-').map(Number);
+                              const dateObj = new Date(year, month - 1, day);
+                              return dateObj.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                            } catch (e) {
+                              return 'No date selected';
+                            }
+                          })() : 'No date selected'}
                         </span>
                       </div>
 
@@ -2247,7 +2763,8 @@
               )}
 
               {/* Fixed Alert Me Button - Bottom Left Corner - Main Page Only */}
-              {partySize !== '7+' && !showBookingModal && !isVideoExpanded && !showAlertModal && !showConfirmation && !showAlertConfirmation && !showWhatsNew && (
+              {/* Hide when showing "no tables" message in center */}
+              {partySize !== '7+' && !showBookingModal && !isVideoExpanded && !showAlertModal && !showConfirmation && !showAlertConfirmation && !showWhatsNew && !(filterTime && filteredFerragostoSlots.length === 0 && filteredMainDiningSlots.length === 0 && filteredBarExpressSlots.length === 0) && (
                 <button 
                   onClick={() => setShowAlertModal(true)}
                   className="fixed bottom-4 left-4 px-4 py-4 bg-gray-100 text-black font-medium rounded-lg hover:bg-gray-200 transition-all z-50 flex items-center gap-1 shadow-md"
@@ -2255,6 +2772,19 @@
                   <Bell className="w-4 h-4" />
                   <div className="text-xs">ALERT ME</div>
                 </button>
+              )}
+
+              {/* Custom Calendar Modal */}
+              {showCalendar && (
+                <CustomCalendar
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                  onClose={() => setShowCalendar(false)}
+                  getNextDays={() => {
+                    // Convert Date objects to YYYY-MM-DD strings for calendar
+                    return getNextDays().map(date => date.toISOString().split('T')[0]);
+                  }}
+                />
               )}
             </div>
           );
