@@ -894,9 +894,16 @@
                 {partySize === '7+' && (
                   <div className="mb-8">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(0);
+                        }}
+                        className="text-sm font-medium text-black tracking-wider hover:text-blue-600 transition-colors"
+                      >
                         THE GARDEN ROOM
-                      </div>
+                      </button>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
@@ -918,9 +925,16 @@
                 {partySize !== '7+' && filteredMainDiningSlots.length > 0 && (
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(1);
+                        }}
+                        className="text-sm font-medium text-black tracking-wider hover:text-blue-600 transition-colors"
+                      >
                         THE DINING ROOM
-                      </div>
+                      </button>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
@@ -958,9 +972,16 @@
                 {partySize === '7+' && (
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(1);
+                        }}
+                        className="text-sm font-medium text-black tracking-wider hover:text-blue-600 transition-colors"
+                      >
                         THE PASTA ROOM
-                      </div>
+                      </button>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
@@ -982,9 +1003,16 @@
                 {partySize !== '7+' && parseInt(partySize) <= 4 && filteredBarExpressSlots.length > 0 && (
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(2);
+                        }}
+                        className="text-sm font-medium text-black tracking-wider hover:text-blue-600 transition-colors"
+                      >
                         THE BAR
-                      </div>
+                      </button>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
