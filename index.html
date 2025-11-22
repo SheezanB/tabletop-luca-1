@@ -695,6 +695,8 @@
             if (!selectedDate || !selectedTime) {
               return;
             }
+            // Reset video expanded state when leaving main page
+            setIsVideoExpanded(false);
             // Only show upgrades for Chef's Menu (ferragosto)
             if (selectedTimeType === 'ferragosto') {
               setShowWhatsNew(true);
@@ -1456,7 +1458,7 @@
                   <div className="flex-shrink-0 bg-white relative">
                     {/* Wine Pairing Content - Only for Chef's Menu */}
                     {selectedTimeType === 'ferragosto' && (
-                      <div className="px-6 pt-5 pb-16">
+                      <div className="px-4 pt-5 pb-4">
                         {/* Subtitle */}
                         <div className="mb-3">
                           <span className="text-gray-600 leading-relaxed text-[15px]">
@@ -1466,11 +1468,11 @@
                         
                         {/* Title and Price on Same Line */}
                         <div className="flex items-baseline justify-between gap-4 mb-3">
-                          <h1 className="font-semibold text-black leading-tight text-[22px]">
+                          <h1 className="font-semibold text-black leading-tight text-[20px]">
                             Chef's Wine Pairing
                           </h1>
                           
-                          <span className="font-semibold text-black whitespace-nowrap text-[22px]">
+                          <span className="font-semibold text-black whitespace-nowrap text-[20px]">
                             £125 / person
                           </span>
                         </div>
