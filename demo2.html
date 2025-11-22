@@ -411,7 +411,7 @@
           });
           
           const [upgrades, setUpgrades] = useState({
-            chefsMenu: { quantity: 0, price: 95, expanded: false },
+            chefsMenuUpgrade: { quantity: 0, price: 95, expanded: false },
             winePairing: { quantity: 0, price: 125, expanded: false }
           });
           const [upgradeVideoPlaying, setUpgradeVideoPlaying] = useState(null);
@@ -446,7 +446,7 @@
           };
           
           const upgradeVideoSources = {
-            chefsMenu: 'Luca_Chefs_Menu_Montage.mp4',
+            chefsMenuUpgrade: 'Luca_Chefs_Menu_Montage.mp4',
             winePairing: 'Luca_Truffle_Menu_Wine_Pairing.mp4'
           };
           const [showConfirmation, setShowConfirmation] = useState(false);
@@ -486,10 +486,13 @@
             }
           ];
 
-          const currentVideo = videos[currentVideoIndex];
+          // Ensure currentVideoIndex is valid for the current videos array
+          const safeVideoIndex = currentVideoIndex < videos.length ? currentVideoIndex : 0;
+          const currentVideo = videos[safeVideoIndex];
 
-          // Update video source when currentVideoIndex or video source changes
+          // Update video source when currentVideoIndex changes or when the video at that index changes
           useEffect(() => {
+            if (!currentVideo) return;
             console.log('Loading video:', currentVideo.src);
             if (videoRef.current) {
               const video = videoRef.current;
@@ -499,7 +502,7 @@
                 video.play().catch(e => console.error('Video play failed:', e));
               }
             }
-          }, [currentVideoIndex, currentVideo.src]);
+          }, [currentVideo?.src, isVideoPlaying]);
 
           // Reset video index when party size changes to ensure we're showing the correct videos
           useEffect(() => {
@@ -507,6 +510,13 @@
             setSelectedDate(new Date().toISOString().split('T')[0]);
             setSelectedTime('');
           }, [partySize]);
+
+          // Ensure currentVideoIndex stays in bounds when videos array changes
+          useEffect(() => {
+            if (currentVideoIndex >= videos.length) {
+              setCurrentVideoIndex(0);
+            }
+          }, [videos.length]);
 
           // Reset description expanded state when video changes
           useEffect(() => {
@@ -552,7 +562,6 @@
           }, [isVideoExpanded]);
 
           // Time slots
-          const ferragostoSlots = ['6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM'];
           const mainDiningSlots = ['6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM'];
           const barExpressSlots = ['12:00 PM', '1:00 PM', '1:30 PM', '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM'];
           const gardenRoomSlots = ['6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM'];
@@ -578,7 +587,6 @@
           };
 
           // Filter time slots based on selected filter time
-          const filteredFerragostoSlots = ferragostoSlots.filter(time => isWithinOneHour(time, filterTime));
           const filteredMainDiningSlots = mainDiningSlots.filter(time => isWithinOneHour(time, filterTime));
           const filteredBarExpressSlots = barExpressSlots.filter(time => isWithinOneHour(time, filterTime));
 
@@ -681,7 +689,9 @@
             if (!selectedDate || !selectedTime) {
               return;
             }
-            // Show upgrades for Main Dining Room and The Bar
+            // Reset video expanded state when leaving main page
+            setIsVideoExpanded(false);
+            // Show upgrades for The Dining Room and The Bar
             if (selectedTimeType === 'main' || selectedTimeType === 'bar') {
               setShowWhatsNew(true);
             } else {
@@ -834,13 +844,50 @@
                   </div>
                 </div>
 
+                {partySize === '7+' && (
+                  <div className="mb-8">
+                    <div className="flex items-center gap-2 mb-2">
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(0);
+                        }}
+                        className="text-sm font-medium text-black tracking-wider transition-colors cursor-pointer"
+                      >
+                        THE GARDEN ROOM
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(0);
+                        }}
+                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="text-sm text-black leading-relaxed mb-3">
+                      The foliage-filled Garden Room conjures dreams of Little Italy. This rustic, secluded sanctuary overlooks our buzzy kitchen. We offer a seasonal six-course menu priced at £120 per person.
+                    </div>
+                  </div>
+                )}
+
                 {/* Time Selection - Second Option - Main Dining */}
                 {partySize !== '7+' && filteredMainDiningSlots.length > 0 && (
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(0);
+                        }}
+                        className="text-sm font-medium text-black tracking-wider transition-colors cursor-pointer"
+                      >
                         THE DINING ROOM
-                      </div>
+                      </button>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
@@ -876,34 +923,18 @@
                 )}
 
                 {partySize === '7+' && (
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
-                        THE GARDEN ROOM
-                      </div>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
                           setIsVideoExpanded(true);
-                          setCurrentVideoIndex(0);
+                          setCurrentVideoIndex(1);
                         }}
-                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                        className="text-sm font-medium text-black tracking-wider transition-colors cursor-pointer"
                       >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="text-sm text-black leading-relaxed mb-3">
-                      The foliage-filled Garden Room conjures dreams of Little Italy. This rustic, secluded sanctuary overlooks our buzzy kitchen. We offer a seasonal six-course menu priced at £120 per person.
-                    </div>
-                  </div>
-                )}
-
-                {partySize === '7+' && (
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
                         THE PASTA ROOM
-                      </div>
+                      </button>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
@@ -925,9 +956,16 @@
                 {partySize !== '7+' && parseInt(partySize) <= 4 && filteredBarExpressSlots.length > 0 && (
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(1);
+                        }}
+                        className="text-sm font-medium text-black tracking-wider transition-colors cursor-pointer"
+                      >
                         THE BAR
-                      </div>
+                      </button>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
@@ -1043,7 +1081,7 @@
                   }`}>
                     <video
                       ref={videoRef}
-                      key={currentVideoIndex}
+                      key={safeVideoIndex}
                       className="w-full h-full object-cover cursor-pointer"
                       autoPlay
                       muted={isVideoMuted}
@@ -1329,7 +1367,7 @@
               )}
 
               {/* Overlay when video is expanded */}
-              {isVideoExpanded && !showBookingModal && (
+              {isVideoExpanded && !showBookingModal && !showWhatsNew && (
                 <div 
                   className="fixed inset-0 bg-black bg-opacity-75 z-40"
                   onClick={toggleVideoSize}
@@ -1339,8 +1377,8 @@
               {/* Chef's Menu - Upgrades Screen */}
               {showWhatsNew && (
                 <div className="fixed inset-0 bg-black z-60 overflow-hidden flex flex-col">
-                  {/* Video Section - Fixed Height */}
-                  <div className="relative flex-shrink-0 bg-black pt-8 pb-3 px-3" style={{ height: '50vh' }}>
+                  {/* Video Section - Flexible Height */}
+                  <div className="relative flex-1 bg-black pt-8 pb-3 px-3 flex items-center justify-center" style={{ minHeight: 0 }}>
                     {/* Back Button - Top Left of Screen */}
                     <button 
                       onClick={() => setShowWhatsNew(false)}
@@ -1351,7 +1389,7 @@
 
                     {/* Expand Video Button - Top Right of Screen */}
                     <button 
-                      onClick={() => setUpgradeVideoPlaying('chefsMenu')}
+                      onClick={() => setUpgradeVideoPlaying('chefsMenuUpgrade')}
                       className="absolute top-4 right-4 w-12 h-12 bg-black bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all z-10"
                     >
                       <Maximize2 className="w-6 h-6 text-white" />
@@ -1375,14 +1413,14 @@
                       style={{ 
                         width: 'auto',
                         maxWidth: 'min(100%, 360px)',
-                        height: '100%',
+                        maxHeight: '100%',
                         aspectRatio: '9 / 16'
                       }} 
-                      onClick={() => setUpgradeVideoPlaying('chefsMenu')}
+                      onClick={() => setUpgradeVideoPlaying('chefsMenuUpgrade')}
                     >
                       <video 
                         ref={upgradePipRef}
-                        src={upgradeVideoSources.chefsMenu}
+                        src={upgradeVideoSources.chefsMenuUpgrade}
                         className="w-full h-full object-cover"
                         autoPlay
                         loop
@@ -1392,96 +1430,91 @@
                     </div>
                   </div>
 
-                  {/* Content Section - Fixed Height, No Scroll */}
-                  <div className="flex-1 bg-white flex flex-col overflow-hidden">
-                    <div className="flex-1 flex flex-col justify-between px-6 py-6 pb-20">
-                      {/* Chef's Menu Upgrade Content - For Main Dining Room and The Bar */}
-                      {(selectedTimeType === 'main' || selectedTimeType === 'bar') && (
-                        <>
-                          {/* Top Content */}
-                          <div>
-                            {/* Subtitle */}
-                            <div style={{ marginBottom: `${spacings.subtitleBottom}px` }}>
-                              <span className="text-gray-600 leading-relaxed" style={{ fontSize: `${fontSizes.subtitle}px` }}>
-                                Treat your party to a special experience
-                              </span>
-                            </div>
-                            
-                            {/* Title and Price on Same Line - Same Font Size/Weight */}
-                            <div className="flex items-baseline justify-between gap-4" style={{ marginBottom: `${spacings.priceBottom}px` }}>
-                              <h1 className="font-semibold text-black leading-tight" style={{ fontSize: `${fontSizes.title}px` }}>
-                                Chef's Menu
-                              </h1>
-                              
-                              <span className="font-semibold text-black whitespace-nowrap" style={{ fontSize: `${fontSizes.price}px` }}>
-                                £95 per person
-                              </span>
-                            </div>
-                            
-                            {/* Description */}
-                            <p className="text-black leading-relaxed" style={{ fontSize: `${fontSizes.description}px` }}>
-                              Chef Ferragosto curates an exciting four course seasonal menu inspired by the Italian coast, to be shared by the table.
-                            </p>
-                          </div>
+                  {/* Fixed Footer with All Content - Always Visible */}
+                  <div className="flex-shrink-0 bg-white relative">
+                    {/* Chef's Menu Upgrade Content - For Dining Room and Bar */}
+                    {(selectedTimeType === 'main' || selectedTimeType === 'bar') && (
+                      <div className="px-4 pt-5 pb-4">
+                        {/* Subtitle */}
+                        <div className="mb-3">
+                          <span className="text-gray-600 leading-relaxed text-[15px]">
+                            Treat your party to a special experience
+                          </span>
+                        </div>
+                        
+                        {/* Title and Price on Same Line */}
+                        <div className="flex items-baseline justify-between gap-4 mb-3">
+                          <h1 className="font-semibold text-black leading-tight text-[20px]">
+                            Chef's Menu
+                          </h1>
+                          
+                          <span className="font-semibold text-black whitespace-nowrap text-[20px]">
+                            £95 / person
+                          </span>
+                        </div>
+                        
+                        {/* Description */}
+                        <p className="text-black leading-relaxed mb-5 text-[15px]">
+                          Chef Ferragosto curates an exciting four course seasonal menu inspired by the Italian coast, to be shared by the table.
+                        </p>
 
-                          {/* Bottom CTA Buttons */}
-                          <div className="space-y-2.5">
-                            {/* Add to Cart Button - Green */}
-                            <button 
-                              onClick={() => {
-                                setUpgrades(prev => ({
-                                  ...prev,
-                                  chefsMenu: { ...prev.chefsMenu, quantity: parseInt(partySize) || 1 }
-                                }));
-                                setCameFromWhatsNew(true);
-                                setShowWhatsNew(false);
-                                setShowBookingModal(true);
-                              }}
-                              style={{ backgroundColor: '#2c3f2f' }}
-                              className="w-full px-4 py-3 text-white rounded-lg hover:opacity-90 transition-all font-medium text-[15px] tracking-wide"
-                            >
-                              ADD TO CART
-                            </button>
+                        {/* CTA Buttons */}
+                        <div className="space-y-2.5 mb-4">
+                          {/* Add to Cart Button - Green */}
+                          <button 
+                            onClick={() => {
+                              setUpgrades(prev => ({
+                                ...prev,
+                                chefsMenuUpgrade: { ...prev.chefsMenuUpgrade, quantity: parseInt(partySize) || 1 }
+                              }));
+                              setCameFromWhatsNew(true);
+                              setShowWhatsNew(false);
+                              setShowBookingModal(true);
+                            }}
+                            style={{ backgroundColor: '#2c3f2f' }}
+                            className="w-full px-4 py-3 text-white rounded-lg hover:opacity-90 transition-all font-medium text-[15px] tracking-wide"
+                          >
+                            ADD TO CART
+                          </button>
 
-                            {/* Skip Button - Gray background */}
-                            <button 
-                              onClick={() => {
-                                setCameFromWhatsNew(true);
-                                setShowWhatsNew(false);
-                                setShowBookingModal(true);
-                              }}
-                              className="w-full px-4 py-3 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition-all font-medium text-[13px] tracking-wide uppercase"
-                            >
-                              SKIP
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                          {/* Skip Button - Gray background */}
+                          <button 
+                            onClick={() => {
+                              setCameFromWhatsNew(true);
+                              setShowWhatsNew(false);
+                              setShowBookingModal(true);
+                            }}
+                            className="w-full px-4 py-3 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition-all font-medium text-[13px] tracking-wide uppercase"
+                          >
+                            SKIP
+                          </button>
+                        </div>
 
-                  {/* Cancellation Policy Link - Fixed Footer (Bottom Left Corner) */}
-                  <div className="fixed bottom-4 left-4 z-20 flex items-center gap-2">
-                    <button
-                      onClick={() => setPolicyModal({
-                        isOpen: true,
-                        title: 'Cancellation Policy',
-                        content: 'We operate a 24 hours cancellation policy of £30 per person for all bookings.\n\nLarger parties and private dining room reservations are subject to a different cancellation policy which is mentioned at the time of the booking.'
-                      })}
-                      className="text-[13px] text-black hover:text-gray-600 transition-colors"
-                    >
-                      Cancellation Policy
-                    </button>
-                    <button
-                      onClick={() => setPolicyModal({
-                        isOpen: true,
-                        title: 'Cancellation Policy',
-                        content: 'We operate a 24 hours cancellation policy of £30 per person for all bookings.\n\nLarger parties and private dining room reservations are subject to a different cancellation policy which is mentioned at the time of the booking.'
-                      })}
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      <Info className="w-4 h-4" />
-                    </button>
+                        {/* Cancellation Policy Link */}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setPolicyModal({
+                              isOpen: true,
+                              title: 'Cancellation Policy',
+                              content: 'We operate a 24 hours cancellation policy of £30 per person for all bookings.\n\nLarger parties and private dining room reservations are subject to a different cancellation policy which is mentioned at the time of the booking.'
+                            })}
+                            className="text-[13px] text-black hover:text-gray-600 transition-colors"
+                          >
+                            Cancellation Policy
+                          </button>
+                          <button
+                            onClick={() => setPolicyModal({
+                              isOpen: true,
+                              title: 'Cancellation Policy',
+                              content: 'We operate a 24 hours cancellation policy of £30 per person for all bookings.\n\nLarger parties and private dining room reservations are subject to a different cancellation policy which is mentioned at the time of the booking.'
+                            })}
+                            className="text-gray-400 hover:text-blue-600 transition-colors"
+                          >
+                            <Info className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1510,6 +1543,15 @@
                         }
                       }}
                     />
+                    
+                    {/* Video Title Overlay - Chef's Menu Upgrade */}
+                    {upgradeVideoPlaying === 'chefsMenuUpgrade' && (
+                      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent pt-6 pb-12">
+                        <h2 className="text-white text-2xl font-semibold text-left px-6">
+                          Chef's Menu
+                        </h2>
+                      </div>
+                    )}
                     
                     {/* Video Title Overlay - Wine Pairing */}
                     {upgradeVideoPlaying === 'winePairing' && (
@@ -1608,14 +1650,14 @@
                       </div>
 
                       {/* Upgrades with Remove links */}
-                      {upgrades.chefsMenu && upgrades.chefsMenu.quantity > 0 && (
+                      {upgrades.chefsMenuUpgrade && upgrades.chefsMenuUpgrade.quantity > 0 && (
                         <div className="mb-2 flex flex-col items-center gap-1">
                           <div className="flex items-center gap-2 text-[14px] text-black">
                             <span>Chef's Menu</span>
                             <button
                               onClick={() => setUpgrades(prev => ({
                                 ...prev,
-                                chefsMenu: { ...prev.chefsMenu, quantity: 0 }
+                                chefsMenuUpgrade: { ...prev.chefsMenuUpgrade, quantity: 0 }
                               }))}
                               className="text-[13px] text-gray-400 underline hover:text-gray-600 transition-colors"
                             >
@@ -1624,7 +1666,6 @@
                           </div>
                         </div>
                       )}
-
                       {upgrades.winePairing && upgrades.winePairing.quantity > 0 && (
                         <div className="mb-2 flex flex-col items-center gap-1">
                           <div className="flex items-center gap-2 text-[14px] text-black">
