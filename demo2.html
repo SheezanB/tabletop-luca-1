@@ -363,7 +363,7 @@
           };
           const [selectedDate, setSelectedDate] = useState(getTomorrowDate());
           const [selectedTime, setSelectedTime] = useState('');
-          const [selectedTimeType, setSelectedTimeType] = useState('ferragosto');
+          const [selectedTimeType, setSelectedTimeType] = useState('main');
           const [partySize, setPartySize] = useState('2');
           const [isVideoPlaying, setIsVideoPlaying] = useState(true);
           const [isVideoExpanded, setIsVideoExpanded] = useState(false);
@@ -411,6 +411,7 @@
           });
           
           const [upgrades, setUpgrades] = useState({
+            chefsMenu: { quantity: 0, price: 95, expanded: false },
             winePairing: { quantity: 0, price: 125, expanded: false }
           });
           const [upgradeVideoPlaying, setUpgradeVideoPlaying] = useState(null);
@@ -445,6 +446,7 @@
           };
           
           const upgradeVideoSources = {
+            chefsMenu: 'Luca_Chefs_Menu_Montage.mp4',
             winePairing: 'Luca_Truffle_Menu_Wine_Pairing.mp4'
           };
           const [showConfirmation, setShowConfirmation] = useState(false);
@@ -471,12 +473,6 @@
             }
           ] : [
             {
-              src: 'chefs-menu-video.mp4',
-              title: 'Chef\'s Menu',
-              shortDescription: 'Chef Ferragosto curates an exciting four course seasonal menu • £95 per person',
-              description: 'Chef Ferragosto curates an exciting four course seasonal menu • £95 per person'
-            },
-            {
               src: 'main-dining-room-video.mp4',
               title: 'The Dining Room',
               shortDescription: 'Experience our signature à la carte menu in the heart of Luca',
@@ -490,13 +486,10 @@
             }
           ];
 
-          // Ensure currentVideoIndex is valid for the current videos array
-          const safeVideoIndex = currentVideoIndex < videos.length ? currentVideoIndex : 0;
-          const currentVideo = videos[safeVideoIndex];
+          const currentVideo = videos[currentVideoIndex];
 
-          // Update video source when currentVideoIndex changes or when the video at that index changes
+          // Update video source when currentVideoIndex or video source changes
           useEffect(() => {
-            if (!currentVideo) return;
             console.log('Loading video:', currentVideo.src);
             if (videoRef.current) {
               const video = videoRef.current;
@@ -506,7 +499,7 @@
                 video.play().catch(e => console.error('Video play failed:', e));
               }
             }
-          }, [currentVideo?.src, isVideoPlaying]);
+          }, [currentVideoIndex, currentVideo.src]);
 
           // Reset video index when party size changes to ensure we're showing the correct videos
           useEffect(() => {
@@ -514,13 +507,6 @@
             setSelectedDate(new Date().toISOString().split('T')[0]);
             setSelectedTime('');
           }, [partySize]);
-
-          // Ensure currentVideoIndex stays in bounds when videos array changes
-          useEffect(() => {
-            if (currentVideoIndex >= videos.length) {
-              setCurrentVideoIndex(0);
-            }
-          }, [videos.length]);
 
           // Reset description expanded state when video changes
           useEffect(() => {
@@ -695,8 +681,8 @@
             if (!selectedDate || !selectedTime) {
               return;
             }
-            // Only show upgrades for Chef's Menu (ferragosto)
-            if (selectedTimeType === 'ferragosto') {
+            // Show upgrades for Main Dining Room and The Bar
+            if (selectedTimeType === 'main' || selectedTimeType === 'bar') {
               setShowWhatsNew(true);
             } else {
               // For other seating areas, go directly to booking modal
@@ -848,12 +834,12 @@
                   </div>
                 </div>
 
-                {/* Time Selection - First Option - White Truffle */}
-                {partySize !== '7+' && filteredFerragostoSlots.length > 0 && (
+                {/* Time Selection - Second Option - Main Dining */}
+                {partySize !== '7+' && filteredMainDiningSlots.length > 0 && (
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="text-sm font-medium text-black tracking-wider">
-                        CHEF'S MENU
+                        THE DINING ROOM
                       </div>
                       <button 
                         onClick={() => {
@@ -867,12 +853,12 @@
                       </button>
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-2">
-                      {filteredFerragostoSlots.map((time) => (
+                      {filteredMainDiningSlots.map((time) => (
                         <button
-                          key={time}
-                          onClick={() => handleTimeSelection(time, 'ferragosto')}
+                          key={`main-${time}`}
+                          onClick={() => handleTimeSelection(time, 'main')}
                           className="flex-shrink-0 px-4 py-3 rounded-lg font-medium transition-all w-32 text-base bg-gray-100 text-black hover:bg-gray-200 border-2 border-transparent"
-                          style={isTimeSelected(time, 'ferragosto') ? { borderColor: 'black', backgroundColor: 'white' } : {}}
+                          style={isTimeSelected(time, 'main') ? { borderColor: 'black', backgroundColor: 'white' } : {}}
                         >
                           <div className="text-sm">{time}</div>
                         </button>
@@ -912,47 +898,6 @@
                   </div>
                 )}
 
-                {/* Time Selection - Second Option - Main Dining */}
-                {partySize !== '7+' && filteredMainDiningSlots.length > 0 && (
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
-                        THE DINING ROOM
-                      </div>
-                      <button 
-                        onClick={() => {
-                          setIsVideoVisible(true);
-                          setIsVideoExpanded(true);
-                          setCurrentVideoIndex(1);
-                        }}
-                        className="text-gray-400 hover:text-blue-600 transition-colors"
-                      >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                      {filteredMainDiningSlots.map((time) => (
-                        <button
-                          key={`main-${time}`}
-                          onClick={() => handleTimeSelection(time, 'main')}
-                          className="flex-shrink-0 px-4 py-3 rounded-lg font-medium transition-all w-32 text-base bg-gray-100 text-black hover:bg-gray-200 border-2 border-transparent"
-                          style={isTimeSelected(time, 'main') ? { borderColor: 'black', backgroundColor: 'white' } : {}}
-                        >
-                          <div className="text-sm">{time}</div>
-                        </button>
-                      ))}
-                      {/* Alert Me Button */}
-                      <button 
-                        onClick={() => setShowAlertModal(true)}
-                        className="flex-shrink-0 px-4 py-3 rounded-lg font-medium transition-all w-32 text-base bg-gray-100 text-black hover:bg-gray-200 flex items-center justify-center gap-1"
-                      >
-                        <Bell className="w-4 h-4" />
-                        <div className="text-sm">ALERT ME</div>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
                 {partySize === '7+' && (
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-2">
@@ -987,7 +932,7 @@
                         onClick={() => {
                           setIsVideoVisible(true);
                           setIsVideoExpanded(true);
-                          setCurrentVideoIndex(2);
+                          setCurrentVideoIndex(1);
                         }}
                         className="text-gray-400 hover:text-blue-600 transition-colors"
                       >
@@ -1018,7 +963,7 @@
                 )}
 
                 {/* No tables available message */}
-                {partySize !== '7+' && filterTime && filteredFerragostoSlots.length === 0 && filteredMainDiningSlots.length === 0 && (parseInt(partySize) > 4 || filteredBarExpressSlots.length === 0) && (
+                {partySize !== '7+' && filterTime && filteredMainDiningSlots.length === 0 && (parseInt(partySize) > 4 || filteredBarExpressSlots.length === 0) && (
                   <div className="mb-6 text-center py-8">
                     <p className="text-base text-black mb-4">
                       Sorry, we don't have any tables within 2 hours of {filterTime}.
@@ -1098,7 +1043,7 @@
                   }`}>
                     <video
                       ref={videoRef}
-                      key={safeVideoIndex}
+                      key={currentVideoIndex}
                       className="w-full h-full object-cover cursor-pointer"
                       autoPlay
                       muted={isVideoMuted}
@@ -1238,9 +1183,6 @@
                                     // Determine which time slots to show based on current video
                                     let slots, type;
                                     if (currentVideoIndex === 0) {
-                                      slots = filteredFerragostoSlots;
-                                      type = 'ferragosto';
-                                    } else if (currentVideoIndex === 1) {
                                       slots = filteredMainDiningSlots;
                                       type = 'main';
                                     } else {
@@ -1271,8 +1213,6 @@
                           {partySize !== '7+' && filterTime && (() => {
                             let slots;
                             if (currentVideoIndex === 0) {
-                              slots = filteredFerragostoSlots;
-                            } else if (currentVideoIndex === 1) {
                               slots = filteredMainDiningSlots;
                             } else {
                               slots = filteredBarExpressSlots;
@@ -1411,7 +1351,7 @@
 
                     {/* Expand Video Button - Top Right of Screen */}
                     <button 
-                      onClick={() => setUpgradeVideoPlaying('winePairing')}
+                      onClick={() => setUpgradeVideoPlaying('chefsMenu')}
                       className="absolute top-4 right-4 w-12 h-12 bg-black bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all z-10"
                     >
                       <Maximize2 className="w-6 h-6 text-white" />
@@ -1438,11 +1378,11 @@
                         height: '100%',
                         aspectRatio: '9 / 16'
                       }} 
-                      onClick={() => setUpgradeVideoPlaying('winePairing')}
+                      onClick={() => setUpgradeVideoPlaying('chefsMenu')}
                     >
                       <video 
                         ref={upgradePipRef}
-                        src={upgradeVideoSources.winePairing}
+                        src={upgradeVideoSources.chefsMenu}
                         className="w-full h-full object-cover"
                         autoPlay
                         loop
@@ -1455,8 +1395,8 @@
                   {/* Content Section - Fixed Height, No Scroll */}
                   <div className="flex-1 bg-white flex flex-col overflow-hidden">
                     <div className="flex-1 flex flex-col justify-between px-6 py-6 pb-20">
-                      {/* Wine Pairing Content - Only for Chef's Menu */}
-                      {selectedTimeType === 'ferragosto' && (
+                      {/* Chef's Menu Upgrade Content - For Main Dining Room and The Bar */}
+                      {(selectedTimeType === 'main' || selectedTimeType === 'bar') && (
                         <>
                           {/* Top Content */}
                           <div>
@@ -1470,17 +1410,17 @@
                             {/* Title and Price on Same Line - Same Font Size/Weight */}
                             <div className="flex items-baseline justify-between gap-4" style={{ marginBottom: `${spacings.priceBottom}px` }}>
                               <h1 className="font-semibold text-black leading-tight" style={{ fontSize: `${fontSizes.title}px` }}>
-                                Chef's Wine Pairing
+                                Chef's Menu
                               </h1>
                               
                               <span className="font-semibold text-black whitespace-nowrap" style={{ fontSize: `${fontSizes.price}px` }}>
-                                £125 per person
+                                £95 per person
                               </span>
                             </div>
                             
                             {/* Description */}
                             <p className="text-black leading-relaxed" style={{ fontSize: `${fontSizes.description}px` }}>
-                              Our sommelier hand selects and decants wines to complement the decadent flavors of the Chef's Menu
+                              Chef Ferragosto curates an exciting four course seasonal menu inspired by the Italian coast, to be shared by the table.
                             </p>
                           </div>
 
@@ -1491,7 +1431,7 @@
                               onClick={() => {
                                 setUpgrades(prev => ({
                                   ...prev,
-                                  winePairing: { ...prev.winePairing, quantity: parseInt(partySize) || 1 }
+                                  chefsMenu: { ...prev.chefsMenu, quantity: parseInt(partySize) || 1 }
                                 }));
                                 setCameFromWhatsNew(true);
                                 setShowWhatsNew(false);
@@ -1653,7 +1593,7 @@
 
                       {/* Seating Area Title */}
                       <h2 className="text-[14px] text-black text-center mb-2">
-                        {selectedTimeType === 'ferragosto' ? 'Chef\'s Menu' : selectedTimeType === 'main' ? 'The Dining Room' : 'The Bar'}
+                        {selectedTimeType === 'main' ? 'The Dining Room' : 'The Bar'}
                       </h2>
 
                       {/* Booking Summary */}
@@ -1668,6 +1608,23 @@
                       </div>
 
                       {/* Upgrades with Remove links */}
+                      {upgrades.chefsMenu && upgrades.chefsMenu.quantity > 0 && (
+                        <div className="mb-2 flex flex-col items-center gap-1">
+                          <div className="flex items-center gap-2 text-[14px] text-black">
+                            <span>Chef's Menu</span>
+                            <button
+                              onClick={() => setUpgrades(prev => ({
+                                ...prev,
+                                chefsMenu: { ...prev.chefsMenu, quantity: 0 }
+                              }))}
+                              className="text-[13px] text-gray-400 underline hover:text-gray-600 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {upgrades.winePairing && upgrades.winePairing.quantity > 0 && (
                         <div className="mb-2 flex flex-col items-center gap-1">
                           <div className="flex items-center gap-2 text-[14px] text-black">
