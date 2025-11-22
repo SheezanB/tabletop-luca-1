@@ -854,9 +854,16 @@
                 {partySize !== '7+' && filteredFerragostoSlots.length > 0 && (
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="text-sm font-medium text-black tracking-wider">
+                      <button 
+                        onClick={() => {
+                          setIsVideoVisible(true);
+                          setIsVideoExpanded(true);
+                          setCurrentVideoIndex(0);
+                        }}
+                        className="text-sm font-medium text-black tracking-wider hover:text-blue-600 transition-colors"
+                      >
                         CHEF'S MENU
-                      </div>
+                      </button>
                       <button 
                         onClick={() => {
                           setIsVideoVisible(true);
