@@ -1389,7 +1389,7 @@
               )}
 
               {/* Overlay when video is expanded */}
-              {isVideoExpanded && !showBookingModal && (
+              {isVideoExpanded && !showBookingModal && !showWhatsNew && (
                 <div 
                   className="fixed inset-0 bg-black bg-opacity-75 z-40"
                   onClick={toggleVideoSize}
@@ -1399,8 +1399,8 @@
               {/* Chef's Menu - Upgrades Screen */}
               {showWhatsNew && (
                 <div className="fixed inset-0 bg-black z-60 overflow-hidden flex flex-col">
-                  {/* Video Section - Fixed Height */}
-                  <div className="relative flex-shrink-0 bg-black pt-8 pb-3 px-3" style={{ height: '50vh' }}>
+                  {/* Video Section - Flexible Height */}
+                  <div className="relative flex-1 bg-black pt-8 pb-3 px-3 flex items-center justify-center" style={{ minHeight: 0 }}>
                     {/* Back Button - Top Left of Screen */}
                     <button 
                       onClick={() => setShowWhatsNew(false)}
@@ -1435,7 +1435,7 @@
                       style={{ 
                         width: 'auto',
                         maxWidth: 'min(100%, 360px)',
-                        height: '100%',
+                        maxHeight: '100%',
                         aspectRatio: '9 / 16'
                       }} 
                       onClick={() => setUpgradeVideoPlaying('winePairing')}
@@ -1452,96 +1452,91 @@
                     </div>
                   </div>
 
-                  {/* Content Section - Fixed Height, No Scroll */}
-                  <div className="flex-1 bg-white flex flex-col overflow-hidden">
-                    <div className="flex-1 flex flex-col justify-between px-6 py-6 pb-20">
-                      {/* Wine Pairing Content - Only for Chef's Menu */}
-                      {selectedTimeType === 'ferragosto' && (
-                        <>
-                          {/* Top Content */}
-                          <div>
-                            {/* Subtitle */}
-                            <div style={{ marginBottom: `${spacings.subtitleBottom}px` }}>
-                              <span className="text-gray-600 leading-relaxed" style={{ fontSize: `${fontSizes.subtitle}px` }}>
-                                Treat your party to a special experience
-                              </span>
-                            </div>
-                            
-                            {/* Title and Price on Same Line - Same Font Size/Weight */}
-                            <div className="flex items-baseline justify-between gap-4" style={{ marginBottom: `${spacings.priceBottom}px` }}>
-                              <h1 className="font-semibold text-black leading-tight" style={{ fontSize: `${fontSizes.title}px` }}>
-                                Chef's Wine Pairing
-                              </h1>
-                              
-                              <span className="font-semibold text-black whitespace-nowrap" style={{ fontSize: `${fontSizes.price}px` }}>
-                                £125 per person
-                              </span>
-                            </div>
-                            
-                            {/* Description */}
-                            <p className="text-black leading-relaxed" style={{ fontSize: `${fontSizes.description}px` }}>
-                              Our sommelier hand selects and decants wines to complement the decadent flavors of the Chef's Menu
-                            </p>
-                          </div>
+                  {/* Fixed Footer with All Content - Always Visible */}
+                  <div className="flex-shrink-0 bg-white relative">
+                    {/* Wine Pairing Content - Only for Chef's Menu */}
+                    {selectedTimeType === 'ferragosto' && (
+                      <div className="px-6 pt-5 pb-16">
+                        {/* Subtitle */}
+                        <div className="mb-3">
+                          <span className="text-gray-600 leading-relaxed text-[15px]">
+                            Treat your party to a special experience
+                          </span>
+                        </div>
+                        
+                        {/* Title and Price on Same Line */}
+                        <div className="flex items-baseline justify-between gap-4 mb-3">
+                          <h1 className="font-semibold text-black leading-tight text-[22px]">
+                            Chef's Wine Pairing
+                          </h1>
+                          
+                          <span className="font-semibold text-black whitespace-nowrap text-[22px]">
+                            £125 / person
+                          </span>
+                        </div>
+                        
+                        {/* Description */}
+                        <p className="text-black leading-relaxed mb-5 text-[15px]">
+                          Our sommelier hand selects and decants wines to complement the decadent flavors of the Chef's Menu
+                        </p>
 
-                          {/* Bottom CTA Buttons */}
-                          <div className="space-y-2.5">
-                            {/* Add to Cart Button - Green */}
-                            <button 
-                              onClick={() => {
-                                setUpgrades(prev => ({
-                                  ...prev,
-                                  winePairing: { ...prev.winePairing, quantity: parseInt(partySize) || 1 }
-                                }));
-                                setCameFromWhatsNew(true);
-                                setShowWhatsNew(false);
-                                setShowBookingModal(true);
-                              }}
-                              style={{ backgroundColor: '#2c3f2f' }}
-                              className="w-full px-4 py-3 text-white rounded-lg hover:opacity-90 transition-all font-medium text-[15px] tracking-wide"
-                            >
-                              ADD TO CART
-                            </button>
+                        {/* CTA Buttons */}
+                        <div className="space-y-2.5 mb-4">
+                          {/* Add to Cart Button - Green */}
+                          <button 
+                            onClick={() => {
+                              setUpgrades(prev => ({
+                                ...prev,
+                                winePairing: { ...prev.winePairing, quantity: parseInt(partySize) || 1 }
+                              }));
+                              setCameFromWhatsNew(true);
+                              setShowWhatsNew(false);
+                              setShowBookingModal(true);
+                            }}
+                            style={{ backgroundColor: '#2c3f2f' }}
+                            className="w-full px-4 py-3 text-white rounded-lg hover:opacity-90 transition-all font-medium text-[15px] tracking-wide"
+                          >
+                            ADD TO CART
+                          </button>
 
-                            {/* Skip Button - Gray background */}
-                            <button 
-                              onClick={() => {
-                                setCameFromWhatsNew(true);
-                                setShowWhatsNew(false);
-                                setShowBookingModal(true);
-                              }}
-                              className="w-full px-4 py-3 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition-all font-medium text-[13px] tracking-wide uppercase"
-                            >
-                              SKIP
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                          {/* Skip Button - Gray background */}
+                          <button 
+                            onClick={() => {
+                              setCameFromWhatsNew(true);
+                              setShowWhatsNew(false);
+                              setShowBookingModal(true);
+                            }}
+                            className="w-full px-4 py-3 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition-all font-medium text-[13px] tracking-wide uppercase"
+                          >
+                            SKIP
+                          </button>
+                        </div>
 
-                  {/* Cancellation Policy Link - Fixed Footer (Bottom Left Corner) */}
-                  <div className="fixed bottom-4 left-4 z-20 flex items-center gap-2">
-                    <button
-                      onClick={() => setPolicyModal({
-                        isOpen: true,
-                        title: 'Cancellation Policy',
-                        content: 'We operate a 24 hours cancellation policy of £30 per person for all bookings.\n\nLarger parties and private dining room reservations are subject to a different cancellation policy which is mentioned at the time of the booking.'
-                      })}
-                      className="text-[13px] text-black hover:text-gray-600 transition-colors"
-                    >
-                      Cancellation Policy
-                    </button>
-                    <button
-                      onClick={() => setPolicyModal({
-                        isOpen: true,
-                        title: 'Cancellation Policy',
-                        content: 'We operate a 24 hours cancellation policy of £30 per person for all bookings.\n\nLarger parties and private dining room reservations are subject to a different cancellation policy which is mentioned at the time of the booking.'
-                      })}
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      <Info className="w-4 h-4" />
-                    </button>
+                        {/* Cancellation Policy Link */}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setPolicyModal({
+                              isOpen: true,
+                              title: 'Cancellation Policy',
+                              content: 'We operate a 24 hours cancellation policy of £30 per person for all bookings.\n\nLarger parties and private dining room reservations are subject to a different cancellation policy which is mentioned at the time of the booking.'
+                            })}
+                            className="text-[13px] text-black hover:text-gray-600 transition-colors"
+                          >
+                            Cancellation Policy
+                          </button>
+                          <button
+                            onClick={() => setPolicyModal({
+                              isOpen: true,
+                              title: 'Cancellation Policy',
+                              content: 'We operate a 24 hours cancellation policy of £30 per person for all bookings.\n\nLarger parties and private dining room reservations are subject to a different cancellation policy which is mentioned at the time of the booking.'
+                            })}
+                            className="text-gray-400 hover:text-blue-600 transition-colors"
+                          >
+                            <Info className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
