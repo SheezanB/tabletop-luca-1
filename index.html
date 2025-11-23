@@ -683,9 +683,22 @@
           };
 
           const toggleVolume = () => {
+            const newMutedState = !isVideoMuted;
+            setIsVideoMuted(newMutedState);
+            
+            // Update main video if it exists
             if (videoRef.current) {
-              videoRef.current.muted = !isVideoMuted;
-              setIsVideoMuted(!isVideoMuted);
+              videoRef.current.muted = newMutedState;
+            }
+            
+            // Update upgrade video if it exists (What's New page)
+            if (upgradePipRef.current) {
+              upgradePipRef.current.muted = newMutedState;
+            }
+            
+            // Update expanded upgrade video if it exists
+            if (upgradeVideoRef.current) {
+              upgradeVideoRef.current.muted = newMutedState;
             }
           };
 

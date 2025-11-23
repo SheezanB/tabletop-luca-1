@@ -677,9 +677,21 @@
           };
 
           const toggleVolume = () => {
+            setIsVideoMuted(!isVideoMuted);
+            
+            // Control main video
             if (videoRef.current) {
               videoRef.current.muted = !isVideoMuted;
-              setIsVideoMuted(!isVideoMuted);
+            }
+            
+            // Control upgrade video
+            if (upgradePipRef.current) {
+              upgradePipRef.current.muted = !isVideoMuted;
+            }
+            
+            // Control fullscreen upgrade video
+            if (upgradeVideoRef.current) {
+              upgradeVideoRef.current.muted = !isVideoMuted;
             }
           };
 
@@ -1209,9 +1221,23 @@
                           )}
                           
                           <div className="mb-4">
-                            <p className="text-white text-sm leading-relaxed overflow-hidden text-ellipsis whitespace-nowrap">
-                              {currentVideo.shortDescription}
-                            </p>
+                            <button 
+                              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                              className="text-left w-full"
+                            >
+                              <p className={`text-white text-sm leading-relaxed ${
+                                isDescriptionExpanded 
+                                  ? '' 
+                                  : 'overflow-hidden text-ellipsis whitespace-nowrap'
+                              }`}>
+                                {isDescriptionExpanded ? currentVideo.description : currentVideo.shortDescription}
+                              </p>
+                              {!isDescriptionExpanded && currentVideo.description !== currentVideo.shortDescription && (
+                                <span className="text-white text-xs opacity-70 mt-1 inline-block">
+                                  Tap to read more
+                                </span>
+                              )}
+                            </button>
                           </div>
 
                           {/* Quick Date and Time Selection - Only for regular dining (not private dining) */}
@@ -1566,7 +1592,14 @@
                       }}
                     />
                     
-                    {/* Video Title Overlay - Wine Pairing */}
+                    {/* Video Title Overlay */}
+                    {upgradeVideoPlaying === 'chefsMenu' && (
+                      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent pt-6 pb-12">
+                        <h2 className="text-white text-2xl font-semibold text-left px-6">
+                          Chef's Menu
+                        </h2>
+                      </div>
+                    )}
                     {upgradeVideoPlaying === 'winePairing' && (
                       <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent pt-6 pb-12">
                         <h2 className="text-white text-2xl font-semibold text-left px-6">
@@ -1581,6 +1614,18 @@
                       className="absolute top-4 right-4 w-12 h-12 bg-black bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all z-10"
                     >
                       <X className="w-6 h-6 text-white" />
+                    </button>
+                    
+                    {/* Volume Control - Bottom Right */}
+                    <button
+                      onClick={toggleVolume}
+                      className="absolute bottom-4 right-4 w-12 h-12 bg-black bg-opacity-50 rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all z-10"
+                    >
+                      {isVideoMuted ? (
+                        <VolumeX className="w-6 h-6 text-white" />
+                      ) : (
+                        <Volume2 className="w-6 h-6 text-white" />
+                      )}
                     </button>
                     
                   </div>
