@@ -2511,8 +2511,8 @@
                                 <img src="luca-logo.jpg" alt="Luca Restaurant" />
                             </div>
                             
-                            {/* Empty state when no time selected */}
-                            {(!selectedTime || !selectedArea) && (
+                            {/* Empty state when no time selected (not for 7+ parties) */}
+                            {(!selectedTime || !selectedArea) && partySize !== '7+' && (
                                 <div style={{
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -2599,7 +2599,7 @@
                                         display: 'block',
                                         textAlign: 'center',
                                         textDecoration: 'none',
-                                        background: 'black'
+                                        background: '#2c3f2f'
                                     }}
                                 >
                                     CHECK AVAILABILITY

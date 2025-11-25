@@ -2600,7 +2600,7 @@
                                         <span>£{(selectedArea.deposit || 0) * parseInt(partySize)}</span>
                                     </div>
                                 </div>
-                            ) : (
+                            ) : partySize !== '7+' ? (
                                 <div style={{
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -2631,7 +2631,7 @@
                                         Select a time slot to view reservation details
                                     </div>
                                 </div>
-                            )}
+                            ) : null}
                         </div>
                         
                         <div className="right-column-footer">
@@ -2645,7 +2645,7 @@
                                         display: 'block',
                                         textAlign: 'center',
                                         textDecoration: 'none',
-                                        background: 'black'
+                                        background: '#2c3f2f'
                                     }}
                                 >
                                     CHECK AVAILABILITY
