@@ -2356,20 +2356,36 @@
 
                     {/* Reservation Details */}
                     <div className="mb-8 pb-8 border-b border-gray-200">
-                      <h4 className="text-[17px] font-semibold text-black mb-1">Luca Restaurant</h4>
+                      <h4 className="text-[17px] font-semibold text-black mb-3">Luca Restaurant</h4>
                       
                       <div className="space-y-1">
+                        <div className="text-[15px] text-black">
+                          {partySize} {partySize === 1 ? 'Guest' : 'Guests'}
+                        </div>
+                        
+                        <div className="text-[15px] text-black">
+                          {selectedDate ? formatDate(selectedDate) : ''}
+                        </div>
+                        
+                        <div className="text-[15px] text-black">
+                          {selectedTime}
+                        </div>
+                        
                         <div className="text-[15px] text-black">
                           {selectedTimeType === 'main' ? 'The Dining Room' : 'The Bar'}
                         </div>
                         
-                        <div className="text-[15px] text-black">
-                          {selectedDate ? formatDate(selectedDate) : ''}, {selectedTime}
-                        </div>
+                        {upgrades.chefsMenu && upgrades.chefsMenu.quantity > 0 && (
+                          <div className="text-[15px] text-black">
+                            Chef's Menu ({upgrades.chefsMenu.quantity} x £95)
+                          </div>
+                        )}
                         
-                        <div className="text-[15px] text-black">
-                          {partySize} {partySize === 1 ? 'Guest' : 'Guests'}
-                        </div>
+                        {upgrades.winePairing && upgrades.winePairing.quantity > 0 && (
+                          <div className="text-[15px] text-black">
+                            Chef's Wine Pairing ({upgrades.winePairing.quantity} x £125)
+                          </div>
+                        )}
                       </div>
                     </div>
 
